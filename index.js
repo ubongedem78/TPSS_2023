@@ -1,12 +1,29 @@
 const express = require("express");
+const { readdirSync } = require("fs");
 const app = express();
+const path = require("path");
+const cors = require("cors");
 
-app.get("/", (req, res) => {
-  res.send("Hello World!");
+app.use(express.json());
+app.use(express.static(path.join(__dirname, "src")));
+app.use(express.urlencoded({ extended: false }));
+app.use(
+  cors({
+    origin: "http://localhost:5500",
+    credentials: true,
+  })
+);
+
+readdirSync("./src/routes").map((routePath) => {
+  app.use("/api/v1", require(`./src/routes/${routePath}`));
 });
 
-const port = process.env.PORT || 3000;
+app.get("/", (req, res) => {
+  res.send("I AM WORKING, BUT YOUVE GOTTA WORK TOO!");
+});
 
-app.listen(port, () => {
-  console.log(`Listening on port ${port}`);
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Listening on port ${PORT}`);
 });
