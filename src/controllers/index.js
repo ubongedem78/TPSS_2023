@@ -10,7 +10,6 @@ const computePayment = (req, res) => {
 
     const calculateSplit = () => {
       let Balance = Amount;
-      console.log("Balance", Balance);
       const splitBreakdown = [];
 
       // Sort Based on Rule: Flat > Percentage > Ratio
@@ -20,8 +19,6 @@ const computePayment = (req, res) => {
       });
 
       for (const splitEntity of sortedSplitInfo) {
-        console.log("splitEntity", splitEntity);
-
         let splitAmount;
 
         if (splitEntity.SplitType === "FLAT") {
@@ -29,18 +26,23 @@ const computePayment = (req, res) => {
         } else if (splitEntity.SplitType === "PERCENTAGE") {
           splitAmount = (splitEntity.SplitValue / 100) * Balance;
         } else if (splitEntity.SplitType === "RATIO") {
-          const totalRatio = sortedSplitInfo
-            .filter((item) => item.SplitType === "RATIO")
-            .reduce((total, item) => total + item.SplitValue, 0);
+          const ratioEntities = sortedSplitInfo.filter(
+            (item) => item.SplitType === "RATIO"
+          );
+          const totalRatio = ratioEntities.reduce(
+            (total, item) => total + item.SplitValue,
+            0
+          );
 
-          splitAmount = (splitEntity.SplitValue / totalRatio) * Balance;
+          const individualRatio = splitEntity.SplitValue / totalRatio;
+          splitAmount = individualRatio * Balance;
         }
 
         Balance -= splitAmount;
 
         splitBreakdown.push({
           SplitEntityId: splitEntity.SplitEntityId,
-          Amount: Balance,
+          Amount: splitAmount,
         });
       }
 
